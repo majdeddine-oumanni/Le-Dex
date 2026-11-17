@@ -1,0 +1,14 @@
+{
+  "name": "mon-dex",
+  "version": "1.0.0",
+  "description": "Sprint 2 — Brief 1 : Mon Dex (starter)",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify"
+  },
+  "devDependencies": {
+    "tailwind-watch": "^0.0.6",
+    "tailwindcss": "3.4.19"
+  }
+}
