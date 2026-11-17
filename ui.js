@@ -7,19 +7,10 @@ let detailSection = document.getElementById("detail");
 let myTeam = []; 
 let allCreatures = [];
 let favorits = getData("favorits");
-let limitCreatures = 20;
-let offset = 0;
 
-document.getElementById("creature-count").textContent = `${limitCreatures}`;
+allCreatures = await getCreatures();
 
-document.getElementById("charge").addEventListener("click", async () => {
-    offset += limitCreatures;
-    let newCreatures = await getCreatures(limitCreatures, offset);
-    allCreatures.push(...newCreatures);
-    init(allCreatures);
-});
-
-allCreatures = await getCreatures(limitCreatures, offset);
+document.getElementById("creature-count").textContent = `${allCreatures.length}`;
 
 function init(creatures) {
     cardsContainer.innerHTML = "";
@@ -91,11 +82,11 @@ cardsContainer.addEventListener('click', (event) => {
         if (index > -1) {
             favorits.splice(index, 1);
             if (imgElement) imgElement.src = "resources/empty-star.png";
-            console.log("Removed from favorites:", favorits);
+            console.log(favorits);
         } else {
             favorits.push(foundedCreature);
             if (imgElement) imgElement.src = "resources/filled-star.png";
-            console.log("Added to favorites:", favorits);
+            console.log(favorits);
         }
         setData("favorits", favorits);
         return;
