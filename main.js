@@ -1,7 +1,7 @@
 // =====================================================================
 // main.js — State, initialization & all event listeners
 // =====================================================================
-import { getCreatures, research, filterByType } from "./api.js";
+import { getCreatures, research, filterByType, postCreature} from "./api.js";
 import { setData, getData } from "./storage.js";
 import {
     renderCards,
@@ -204,7 +204,7 @@ if (form) {
         if (e.target.classList.contains("level")) levelValidation();
     });
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         const idOk = idValidation(allCreatures);
@@ -227,8 +227,8 @@ if (form) {
                 ATTACK: Number(document.querySelector("#attack")?.value || 50),
                 DEFENCE: Number(document.querySelector("#defence")?.value || 50)
             };
-            
-            allCreatures.push(newCreature);
+            const response = await postCreature(newCreature);
+            allCreatures = await getCreatures();
             init(allCreatures);
             form.reset();
         }

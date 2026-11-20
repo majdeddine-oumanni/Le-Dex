@@ -219,6 +219,16 @@
       "HP": 45,
       "ATTACK": 49,
       "DEFENCE": 49
+    },
+    {
+      "id": "777",
+      "name": "caterpie",
+      "primaryType": "electric",
+      "level": "Niveau 10",
+      "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/10.png",
+      "HP": 50,
+      "ATTACK": 45,
+      "DEFENCE": 23
     }
   ]
 }
