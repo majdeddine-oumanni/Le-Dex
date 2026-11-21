@@ -15,6 +15,9 @@ export function renderCards(creatures, favorits, cardsContainer) {
                 <button type="button" class="star-icon" data-id="${creature.id}" aria-label="Favori">
                     <img src="resources/${isFav ? "filled-star.png" : "empty-star.png"}" alt="Favori">
                 </button>
+                <button type="button" class="pen-icon edit-creature-btn" data-id="${creature.id}" aria-label="Modifier">
+                    <img src="resources/pen.png" alt="Modifier">
+                </button>
                 <div class="relative flex h-36 items-center justify-center rounded-xl bg-brand-light">
                     <img src="${creature.image}" alt="${creature.name}" class="object-contain poke_img">
                     <span class="absolute left-3 top-2 font-mono text-sm text-muted">#${creature.id}</span>
@@ -49,7 +52,13 @@ export function renderDetail(creature, detailSection) {
             <div class="grid grid-cols-[80px_1fr_40px] items-center gap-2"><span class="font-bold">Attaque</span><span class="h-3 rounded-full bg-ground"><span class="block h-3 rounded-full bg-brand" style="width:${creature.ATTACK}%;"></span></span><span class="text-right font-mono">${creature.ATTACK}</span></div>
             <div class="grid grid-cols-[80px_1fr_40px] items-center gap-2"><span class="font-bold">Défense</span><span class="h-3 rounded-full bg-ground"><span class="block h-3 rounded-full bg-brand" style="width:${creature.DEFENCE}%;"></span></span><span class="text-right font-mono">${creature.DEFENCE}</span></div>
         </div>
-        <button type="button" class="btn-primary add-to-team-button" data-id="${creature.id}">Ajouter à l'équipe</button>
+        <div class="flex gap-2">
+            <button type="button" class="btn-primary flex-1 add-to-team-button" data-id="${creature.id}">Ajouter à l'équipe</button>
+            <button type="button" class="btn-outline flex items-center justify-center gap-2 edit-creature-btn" data-id="${creature.id}">
+                <img src="resources/pen.png" alt="Modifier" class="w-4 h-4 object-contain">
+                Modifier
+            </button>
+        </div>
     `;
 }
 
@@ -267,4 +276,44 @@ export function levelValidation() {
         return false;
     }
     return true;
+}
+
+// -------------------------------------------------------------
+// Form mode rendering (fill form for edit / reset UI)
+// -------------------------------------------------------------
+export function fillForm(creature) {
+    const idInput = document.querySelector("#id");
+    const nameInput = document.querySelector("#name");
+    const typeInput = document.querySelector("#type");
+    const levelInput = document.querySelector(".level");
+    const attackInput = document.querySelector("#attack");
+    const defenceInput = document.querySelector("#defence");
+    const imgInput = document.querySelector("#img");
+    const descInput = document.querySelector("#description");
+    const submitBtn = document.querySelector('#creature-form button[type="submit"]');
+    const formTitle = document.querySelector("#create h2");
+
+    if (idInput) {
+        idInput.value = creature.id;
+        idInput.disabled = true;
+    }
+    if (nameInput) nameInput.value = creature.name || "";
+    if (typeInput) typeInput.value = creature.primaryType || "";
+    if (levelInput) levelInput.value = (creature.level || "").replace(/^Niveau\s*/i, "");
+    if (attackInput) attackInput.value = creature.ATTACK ?? "";
+    if (defenceInput) defenceInput.value = creature.DEFENCE ?? "";
+    if (imgInput) imgInput.value = creature.image || "";
+    if (descInput) descInput.value = creature.description || "Une créature unique prête pour l'aventure.";
+    if (submitBtn) submitBtn.textContent = "Modifier la créature";
+    if (formTitle) formTitle.textContent = "Modifier la créature";
+}
+
+export function resetFormUI() {
+    const idInput = document.querySelector("#id");
+    const submitBtn = document.querySelector('#creature-form button[type="submit"]');
+    const formTitle = document.querySelector("#create h2");
+
+    if (idInput) idInput.disabled = false;
+    if (submitBtn) submitBtn.textContent = "Ajouter la créature";
+    if (formTitle) formTitle.textContent = "Nouvelle créature";
 }

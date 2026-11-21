@@ -1,7 +1,7 @@
 // =====================================================================
 // main.js — State, initialization & all event listeners
 // =====================================================================
-import { getCreatures, research, filterByType, postCreature} from "./api.js";
+import { getCreatures, research, filterByType, postCreature, putCreature } from "./api.js";
 import { setData, getData } from "./storage.js";
 import {
     renderCards,
@@ -14,7 +14,9 @@ import {
     defenceValidation,
     imgValidation,
     descriptionValidation,
-    levelValidation
+    levelValidation,
+    fillForm,
+    resetFormUI
 } from "./ui.js";
 
 // -------------------------------------------------------------
@@ -24,6 +26,7 @@ let myTeam = [];
 let allCreatures = [];
 let favorits = getData("favorits") || [];
 let currentType = getData("currentType") || "tous";
+let editingId = null;
 
 // -------------------------------------------------------------
 // DOM references
@@ -92,7 +95,7 @@ cardsContainer.addEventListener('click', (event) => {
         event.stopPropagation();
         const creatureId = addBtn.dataset.id;
         const foundedCreature = allCreatures.find((creature) => String(creature.id) === String(creatureId));
-        
+
         if (!foundedCreature) return;
 
         if (myTeam.length >= 6) {
@@ -116,11 +119,11 @@ cardsContainer.addEventListener('click', (event) => {
         event.stopPropagation();
         const creatureId = favorBtn.dataset.id;
         const foundedCreature = allCreatures.find((creature) => String(creature.id) === String(creatureId));
-        
+
         if (!foundedCreature) return;
 
         const index = favorits.findIndex((creature) => String(creature.id) === String(creatureId));
-        
+
         const imgElement = favorBtn.querySelector("img");
 
         if (index > -1) {
@@ -136,6 +139,19 @@ cardsContainer.addEventListener('click', (event) => {
         return;
     }
 
+    const editBtn = event.target.closest('.edit-creature-btn, .pen-icon');
+    if (editBtn) {
+        event.stopPropagation();
+        const creatureId = editBtn.dataset.id;
+        const creature = allCreatures.find((c) => String(c.id) === String(creatureId));
+        if (creature) {
+            editingId = creature.id;
+            fillForm(creature);
+            document.getElementById("create")?.scrollIntoView({ behavior: "smooth" });
+        }
+        return;
+    }
+
     const card = event.target.closest('.poke-card');
     if (!card) return;
 
@@ -147,13 +163,49 @@ cardsContainer.addEventListener('click', (event) => {
 });
 
 // -------------------------------------------------------------
-// 3. DETAIL PANEL — close button
+// 3. DETAIL PANEL — close button, edit button & add to team
 // -------------------------------------------------------------
 detailSection.addEventListener('click', (event) => {
     const closeBtn = event.target.closest('#back-btn');
-    if (!closeBtn) return;
+    if (closeBtn) {
+        renderDetailEmpty(detailSection);
+        return;
+    }
 
-    renderDetailEmpty(detailSection);
+    const editBtn = event.target.closest('.edit-creature-btn');
+    if (editBtn) {
+        const creatureId = editBtn.dataset.id;
+        const creature = allCreatures.find(c => String(c.id) === String(creatureId));
+        if (creature) {
+            editingId = creature.id;
+            fillForm(creature);
+            document.getElementById("create")?.scrollIntoView({ behavior: "smooth" });
+        }
+        return;
+    }
+
+    const addBtn = event.target.closest('.add-to-team-button');
+    if (addBtn) {
+        const creatureId = addBtn.dataset.id;
+        const foundedCreature = allCreatures.find((creature) => String(creature.id) === String(creatureId));
+
+        if (!foundedCreature) return;
+
+        if (myTeam.length >= 6) {
+            alert("Votre equipe est complete (6/6 max)");
+            return;
+        }
+
+        const alreadyExists = myTeam.some((creature) => String(creature.id) === String(creatureId));
+        if (alreadyExists) {
+            alert("cette creature est deja dans votre equipe");
+            return;
+        }
+
+        myTeam.push(foundedCreature);
+        renderTeam(myTeam);
+        return;
+    }
 });
 
 // -------------------------------------------------------------
@@ -190,12 +242,17 @@ if (rech) {
 }
 
 // -------------------------------------------------------------
-// 6. CREATION FORM — validation & submit
+// 6. CREATION & MODIFICATION FORM — validation & submit
 // -------------------------------------------------------------
 if (form) {
+    form.addEventListener("reset", () => {
+        editingId = null;
+        resetFormUI();
+    });
+
     form.addEventListener("input", function (e) {
         const field = e.target.id;
-        if (field === "id") idValidation(allCreatures);
+        if (field === "id" && editingId === null) idValidation(allCreatures);
         if (field === "name") nameValidation();
         if (field === "attack") attackValidation();
         if (field === "defence") defenceValidation();
@@ -207,7 +264,7 @@ if (form) {
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        const idOk = idValidation(allCreatures);
+        const idOk = editingId !== null ? true : idValidation(allCreatures);
         const nameOk = nameValidation();
         const attackOk = attackValidation();
         const defenceOk = defenceValidation();
@@ -216,21 +273,44 @@ if (form) {
         const descriptionOk = descriptionValidation();
 
         if (idOk && nameOk && attackOk && defenceOk && imgOk && levelOk && descriptionOk) {
-            const newCreature = {
-                id: document.querySelector("#id").value.trim(),
+            const attackVal = Number(document.querySelector("#attack")?.value || 50);
+            const defenceVal = Number(document.querySelector("#defence")?.value || 50);
+            const hpVal = 50;
+
+            const creatureData = {
+                id: editingId !== null ? Number(editingId) : Number(document.querySelector("#id").value.trim()),
                 name: document.querySelector("#name").value.trim(),
                 primaryType: document.querySelector("[name='type']").value,
                 level: "Niveau " + document.querySelector(".level").value.trim(),
                 image: document.querySelector("#img").value.trim(),
-                //description: document.querySelector("#description").value.trim(),
-                HP: 50,
-                ATTACK: Number(document.querySelector("#attack")?.value || 50),
-                DEFENCE: Number(document.querySelector("#defence")?.value || 50)
+                totalStats: hpVal + attackVal + defenceVal,
+                HP: hpVal,
+                ATTACK: attackVal,
+                DEFENCE: defenceVal
             };
-            const response = await postCreature(newCreature);
-            allCreatures = await getCreatures();
-            init(allCreatures);
-            form.reset();
+
+            let response;
+            if (editingId !== null) {
+                response = await putCreature(editingId, creatureData);
+            } else {
+                response = await postCreature(creatureData);
+            }
+
+            if (response) {
+                allCreatures = await getCreatures();
+                document.getElementById("creature-count").textContent = `${allCreatures.length}`;
+                await applyFilter(currentType);
+
+                // If the modified creature is currently shown in the detail panel, refresh it
+                if (editingId !== null) {
+                    const updated = allCreatures.find(c => Number(c.id) === Number(editingId));
+                    if (updated) renderDetail(updated, detailSection);
+                }
+
+                editingId = null;
+                resetFormUI();
+                form.reset();
+            }
         }
     });
 }

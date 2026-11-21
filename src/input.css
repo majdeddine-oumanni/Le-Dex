@@ -46,3 +46,22 @@
   height: 20px ;
   max-width: none;
 }
+.poke-card .pen-icon {
+  position: absolute;
+  top: 20px;
+  right: 48px;
+  z-index: 10;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.poke-card .pen-icon:hover {
+  transform: scale(1.15);
+}
+.poke-card .pen-icon img {
+  width: 20px;
+  height: 20px;
+  max-width: none;
+}

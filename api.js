@@ -75,3 +75,22 @@ export const postCreature = async (creature)=>{
         console.error("Error : " + error);
     }
 }
+
+export const putCreature = async (id, creature) => {
+    try {
+        const response = await fetch(`${apiUrl}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(creature)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Error : " + error);
+    }
+};
